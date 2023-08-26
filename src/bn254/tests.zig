@@ -3,12 +3,9 @@ const Fr = @import("fr.zig");
 const parameters = @import("../parameters.zig");
 const poseidon = @import("../poseidon.zig");
 
-test "go-iden3-crypto compatibility" {
-    var allocator = std.testing.allocator;
-    var bn254_params = try parameters.get_babyjubjub_parameters(allocator);
-    defer bn254_params.deinit();
+const test_case = struct { v: []const u256, exp_hash: u256 };
 
-    const test_case = struct { v: []const u256, exp_hash: u256 };
+test "go-iden3-crypto compatibility" {
     const test_cases = [_]test_case{
         .{ .v = &[_]u256{1}, .exp_hash = 18586133768512220936620570745912940619677854269274689475585506675881198879027 },
         .{ .v = &[_]u256{ 1, 2 }, .exp_hash = 7853200120776062878684798364095072458815029376092732009249414926327459813530 },
@@ -22,6 +19,24 @@ test "go-iden3-crypto compatibility" {
         .{ .v = &[_]u256{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0, 0 }, .exp_hash = 11882816200654282475720830292386643970958445617880627439994635298904836126497 },
         .{ .v = &[_]u256{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }, .exp_hash = 9989051620750914585850546081941653841776809718687451684622678807385399211877 },
     };
+    try test_run(&test_cases);
+}
+
+test "circomlib compatibility" {
+    const test_cases = [_]test_case{
+        .{ .v = &[_]u256{ 1, 2, 0, 0, 0 }, .exp_hash = 1018317224307729531995786483840663576608797660851238720571059489595066344487 },
+        .{ .v = &[_]u256{ 3, 4, 5, 10, 23 }, .exp_hash = 13034429309846638789535561449942021891039729847501137143363028890275222221409 },
+        .{ .v = &[_]u256{ 1, 2 }, .exp_hash = 7853200120776062878684798364095072458815029376092732009249414926327459813530 },
+        .{ .v = &[_]u256{ 3, 4 }, .exp_hash = 14763215145315200506921711489642608356394854266165572616578112107564877678998 },
+        .{ .v = &[_]u256{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 }, .exp_hash = 9989051620750914585850546081941653841776809718687451684622678807385399211877 },
+    };
+    try test_run(&test_cases);
+}
+
+fn test_run(comptime test_cases: []const test_case) !void {
+    var allocator = std.testing.allocator;
+    var bn254_params = try parameters.get_babyjubjub_parameters(allocator);
+    defer bn254_params.deinit();
 
     inline for (test_cases) |tc| {
         var instance = poseidon.Poseidon(Fr, tc.v.len + 1).init(bn254_params);

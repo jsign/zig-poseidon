@@ -11,7 +11,6 @@ pub fn Poseidon(comptime Fr: type, comptime w: u8) type {
             };
         }
 
-        // https://github.com/lurk-lab/neptune/blob/ef14a61b1aa7f8e92e6ace2190723c155e613a4a/spec/poseidon_spec.pdf
         pub fn hash(
             self: *@This(),
             input: [w - 1]Fr.MontgomeryDomainFieldElement,

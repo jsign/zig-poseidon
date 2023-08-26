@@ -135,7 +135,25 @@ pub fn PoseidonFamilyParameters(comptime Fr: type) type {
                 .P = self.parameters.P[w - 2],
                 .S = self.parameters.S[w - 2],
                 .R_f = 8 / 2,
-                .R_P = 56,
+                .R_P = switch (w) {
+                    2 => 56,
+                    3 => 57,
+                    4 => 56,
+                    5 => 60,
+                    6 => 60,
+                    7 => 63,
+                    8 => 64,
+                    9 => 63,
+                    10 => 60,
+                    11 => 66,
+                    12 => 60,
+                    13 => 65,
+                    14 => 70,
+                    15 => 60,
+                    16 => 64,
+                    17 => 68,
+                    else => unreachable,
+                },
             };
         }
     };

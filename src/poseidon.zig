@@ -145,11 +145,5 @@ pub fn Poseidon(comptime Fr: type, comptime w: u8) type {
             Fr.mul(&r, r, e);
             return r;
         }
-
-        fn nonMont(a: Fr.MontgomeryDomainFieldElement) Fr.MontgomeryDomainFieldElement {
-            var j: Fr.NonMontgomeryDomainFieldElement = undefined;
-            Fr.fromMontgomery(&j, a);
-            return j;
-        }
     };
 }

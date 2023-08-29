@@ -17,7 +17,7 @@ Supporting other fields (e.g: BLS12-381 scalar field) would only involve generat
 
 ## Benchmarks
 
-This implementation doesn't use assembly (e.g: AVX2) or SIMD instructions for finite field operations.
+This implementation doesn't use assembly (e.g: ADX) or SIMD instructions for finite field operations.
 
 Run on _AMD Ryzen 7 3800XT_:
 ```

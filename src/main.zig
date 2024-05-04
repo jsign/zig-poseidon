@@ -18,7 +18,7 @@ pub fn main() !void {
 
         var frs: [w]Fr.NonMontgomeryDomainFieldElement = undefined;
         for (0..w, 0..) |v, i| {
-            std.mem.writeIntLittle(u256, &buf, v);
+            std.mem.writeInt(u256, &buf, v, .little);
             var nonMont: Fr.NonMontgomeryDomainFieldElement = undefined;
             Fr.fromBytes(&nonMont, buf);
             Fr.toMontgomery(&frs[i], nonMont);

@@ -40,9 +40,9 @@ pub fn PoseidonFamilyParameters(comptime Fr: type) type {
             for (0..parameters.value.C.len) |i| {
                 ret.C[i] = try allocator.alloc(Fr.MontgomeryDomainFieldElement, parameters.value.C[i].len);
                 for (0..parameters.value.C[i].len) |j| {
-                    var fe = try std.fmt.parseInt(u256, parameters.value.C[i][j], 0);
+                    const fe = try std.fmt.parseInt(u256, parameters.value.C[i][j], 0);
                     var buf: [32]u8 = undefined;
-                    std.mem.writeIntLittle(@TypeOf(fe), &buf, fe);
+                    std.mem.writeInt(@TypeOf(fe), &buf, fe, .little);
                     Fr.fromBytes(&ret.C[i][j], buf);
                     Fr.toMontgomery(&ret.C[i][j], ret.C[i][j]);
                 }
@@ -53,9 +53,9 @@ pub fn PoseidonFamilyParameters(comptime Fr: type) type {
                 for (0..parameters.value.M[i].len) |j| {
                     ret.M[i][j] = try allocator.alloc(Fr.MontgomeryDomainFieldElement, parameters.value.M[i][j].len);
                     for (0..parameters.value.M[i][j].len) |k| {
-                        var fe = try std.fmt.parseInt(u256, parameters.value.M[i][j][k], 0);
+                        const fe = try std.fmt.parseInt(u256, parameters.value.M[i][j][k], 0);
                         var buf: [32]u8 = undefined;
-                        std.mem.writeIntLittle(@TypeOf(fe), &buf, fe);
+                        std.mem.writeInt(@TypeOf(fe), &buf, fe, .little);
                         Fr.fromBytes(&ret.M[i][j][k], buf);
                         Fr.toMontgomery(&ret.M[i][j][k], ret.M[i][j][k]);
                     }
@@ -67,9 +67,9 @@ pub fn PoseidonFamilyParameters(comptime Fr: type) type {
                 for (0..parameters.value.P[i].len) |j| {
                     ret.P[i][j] = try allocator.alloc(Fr.MontgomeryDomainFieldElement, parameters.value.P[i][j].len);
                     for (0..parameters.value.P[i][j].len) |k| {
-                        var fe = try std.fmt.parseInt(u256, parameters.value.P[i][j][k], 0);
+                        const fe = try std.fmt.parseInt(u256, parameters.value.P[i][j][k], 0);
                         var buf: [32]u8 = undefined;
-                        std.mem.writeIntLittle(@TypeOf(fe), &buf, fe);
+                        std.mem.writeInt(@TypeOf(fe), &buf, fe, .little);
                         Fr.fromBytes(&ret.P[i][j][k], buf);
                         Fr.toMontgomery(&ret.P[i][j][k], ret.P[i][j][k]);
                     }
@@ -79,9 +79,9 @@ pub fn PoseidonFamilyParameters(comptime Fr: type) type {
             for (0..parameters.value.S.len) |i| {
                 ret.S[i] = try allocator.alloc(Fr.MontgomeryDomainFieldElement, parameters.value.S[i].len);
                 for (0..parameters.value.S[i].len) |j| {
-                    var fe = try std.fmt.parseInt(u256, parameters.value.S[i][j], 0);
+                    const fe = try std.fmt.parseInt(u256, parameters.value.S[i][j], 0);
                     var buf: [32]u8 = undefined;
-                    std.mem.writeIntLittle(@TypeOf(fe), &buf, fe);
+                    std.mem.writeInt(@TypeOf(fe), &buf, fe, .little);
                     Fr.fromBytes(&ret.S[i][j], buf);
                     Fr.toMontgomery(&ret.S[i][j], ret.S[i][j]);
                 }

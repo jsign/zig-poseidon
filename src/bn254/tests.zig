@@ -34,7 +34,7 @@ test "circomlib compatibility" {
 }
 
 fn test_run(comptime test_cases: []const test_case) !void {
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var bn254_params = try parameters.get_babyjubjub_parameters(allocator);
     defer bn254_params.deinit();
 
@@ -44,16 +44,16 @@ fn test_run(comptime test_cases: []const test_case) !void {
 
         var frs: [tc.v.len]Fr.NonMontgomeryDomainFieldElement = undefined;
         for (tc.v, 0..) |v, i| {
-            std.mem.writeIntLittle(u256, &buf, v);
+            std.mem.writeInt(u256, &buf, v, .little);
             var nonMont: Fr.NonMontgomeryDomainFieldElement = undefined;
             Fr.fromBytes(&nonMont, buf);
             Fr.toMontgomery(&frs[i], nonMont);
         }
 
-        var hash = instance.hash(frs);
+        const hash = instance.hash(frs);
 
         Fr.toBytes(&buf, hash);
-        const res = std.mem.readInt(u256, &buf, std.builtin.Endian.Little);
+        const res = std.mem.readInt(u256, &buf, .little);
 
         try std.testing.expect(tc.exp_hash == res);
     }

@@ -11,26 +11,25 @@ pub fn Poseidon2(
     external_rcs: [ext_rounds][width]u32,
     internal_rcs: [int_rounds]u32,
 ) type {
-    comptime var ext_rcs: [ext_rounds][width]F.MontgomeryDomainFieldElement = undefined;
+    comptime var ext_rcs: [ext_rounds][width]F.MontFieldElem = undefined;
     for (0..ext_rounds) |i| {
         for (0..width) |j| {
             F.toMontgomery(&ext_rcs[i][j], external_rcs[i][j]);
         }
     }
-    comptime var int_rcs: [int_rounds]F.MontgomeryDomainFieldElement = undefined;
+    comptime var int_rcs: [int_rounds]F.MontFieldElem = undefined;
     for (0..int_rounds) |i| {
         F.toMontgomery(&int_rcs[i], internal_rcs[i]);
     }
-    comptime var int_diagonal: [width]F.MontgomeryDomainFieldElement = undefined;
+    comptime var int_diagonal: [width]F.MontFieldElem = undefined;
     for (0..width) |i| {
         F.toMontgomery(&int_diagonal[i], internal_diagonal[i]);
     }
     return struct {
-        pub const State = [width]MontFieldElem;
-        pub const FieldElem = u32;
-        pub const MontFieldElem = F.MontgomeryDomainFieldElement;
+        pub const Field = F;
+        pub const State = [width]F.MontFieldElem;
 
-        pub fn compress(comptime output_len: comptime_int, input: [width]FieldElem) [output_len]FieldElem {
+        pub fn compress(comptime output_len: comptime_int, input: [width]F.FieldElem) [output_len]F.FieldElem {
             assert(output_len <= width, "output_len must be <= width");
 
             var state: State = undefined;
@@ -83,7 +82,7 @@ pub fn Poseidon2(
 
             // Calculate the "base" result as if we're doing
             // circ(M4, M4, ...) * state.
-            var base = std.mem.zeroes([4]MontFieldElem);
+            var base = std.mem.zeroes([4]F.MontFieldElem);
             inline for (0..4) |i| {
                 inline for (0..width / 4) |j| {
                     F.add(&base[i], base[i], state[(j << 2) + i]);
@@ -105,14 +104,14 @@ pub fn Poseidon2(
             const t4 = width / 4;
             inline for (0..t4) |i| {
                 const start_index = i * 4;
-                var t_0: MontFieldElem = undefined;
+                var t_0: F.MontFieldElem = undefined;
                 F.add(&t_0, input[start_index], input[start_index + 1]);
-                var t_1: MontFieldElem = undefined;
+                var t_1: F.MontFieldElem = undefined;
                 F.add(&t_1, input[start_index + 2], input[start_index + 3]);
-                var t_2: MontFieldElem = undefined;
+                var t_2: F.MontFieldElem = undefined;
                 F.add(&t_2, input[start_index + 1], input[start_index + 1]);
                 F.add(&t_2, t_2, t_1);
-                var t_3: MontFieldElem = undefined;
+                var t_3: F.MontFieldElem = undefined;
                 F.add(&t_3, input[start_index + 3], input[start_index + 3]);
                 F.add(&t_3, t_3, t_0);
                 var t_4 = t_1;
@@ -147,14 +146,14 @@ pub fn Poseidon2(
             }
         }
 
-        inline fn sbox(e: MontFieldElem) MontFieldElem {
+        inline fn sbox(e: F.MontFieldElem) F.MontFieldElem {
             return switch (sbox_degree) {
                 7 => blk: {
-                    var e_squared: MontFieldElem = undefined;
+                    var e_squared: F.MontFieldElem = undefined;
                     F.square(&e_squared, e);
-                    var e_forth: MontFieldElem = undefined;
+                    var e_forth: F.MontFieldElem = undefined;
                     F.square(&e_forth, e_squared);
-                    var res: MontFieldElem = undefined;
+                    var res: F.MontFieldElem = undefined;
                     F.mul(&res, e_forth, e_squared);
                     F.mul(&res, res, e);
                     break :blk res;

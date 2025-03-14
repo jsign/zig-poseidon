@@ -211,26 +211,81 @@ const testVector = struct {
     output_state: [WIDTH]u32,
 };
 test "reference repo" {
-    const tests_vectors = [_]testVector{
-        .{
-            .input_state = std.mem.zeroes([WIDTH]u32),
-            .output_state = .{ 1337856655, 1843094405, 328115114, 964209316, 1365212758, 1431554563, 210126733, 1214932203, 1929553766, 1647595522, 1496863878, 324695999, 1569728319, 1634598391, 597968641, 679989771 },
-        },
-        .{
-            .input_state = [_]Poseidon2BabyBear.FieldElem{42} ** 16,
-            .output_state = .{ 1000818763, 32822117, 1516162362, 1002505990, 932515653, 770559770, 350012663, 846936440, 1676802609, 1007988059, 883957027, 738985594, 6104526, 338187715, 611171673, 414573522 },
-        },
+    @setEvalBranchQuota(100_000);
+
+    const finite_fields = [_]type{
+        @import("../fields/babybear/montgomery.zig").MontgomeryField,
+        @import("../fields/babybear/naive.zig"),
     };
-    for (tests_vectors) |test_vector| {
-        var mont_state: [WIDTH]babybear.MontgomeryDomainFieldElement = undefined;
-        inline for (0..WIDTH) |i| {
-            babybear.toMontgomery(&mont_state[i], test_vector.input_state[i]);
+    inline for (finite_fields) |F| {
+        const TestPoseidon2BabyBear = poseidon2.Poseidon2(
+            F,
+            WIDTH,
+            INTERNAL_ROUNDS,
+            EXTERNAL_ROUNDS,
+            SBOX_DEGREE,
+            DIAGONAL,
+            EXTERNAL_RCS,
+            INTERNAL_RCS,
+        );
+        const tests_vectors = [_]testVector{
+            .{
+                .input_state = std.mem.zeroes([WIDTH]u32),
+                .output_state = .{ 1337856655, 1843094405, 328115114, 964209316, 1365212758, 1431554563, 210126733, 1214932203, 1929553766, 1647595522, 1496863878, 324695999, 1569728319, 1634598391, 597968641, 679989771 },
+            },
+            .{
+                .input_state = [_]F.FieldElem{42} ** 16,
+                .output_state = .{ 1000818763, 32822117, 1516162362, 1002505990, 932515653, 770559770, 350012663, 846936440, 1676802609, 1007988059, 883957027, 738985594, 6104526, 338187715, 611171673, 414573522 },
+            },
+        };
+        for (tests_vectors) |test_vector| {
+            try std.testing.expectEqual(test_vector.output_state, testPermutation(TestPoseidon2BabyBear, test_vector.input_state));
         }
-        var expected_mont_state: [WIDTH]babybear.MontgomeryDomainFieldElement = undefined;
-        inline for (0..WIDTH) |i| {
-            babybear.toMontgomery(&expected_mont_state[i], test_vector.output_state[i]);
-        }
-        Poseidon2BabyBear.permutation(&mont_state);
-        try std.testing.expectEqual(expected_mont_state, mont_state);
     }
+}
+
+test "finite field implementation coherency" {
+    const Poseidon2BabyBearNaive = poseidon2.Poseidon2(
+        @import("../fields/babybear/naive.zig"),
+        WIDTH,
+        INTERNAL_ROUNDS,
+        EXTERNAL_ROUNDS,
+        SBOX_DEGREE,
+        DIAGONAL,
+        EXTERNAL_RCS,
+        INTERNAL_RCS,
+    );
+    const Poseidon2BabyBearOptimized = poseidon2.Poseidon2(
+        @import("../fields/babybear/montgomery.zig").MontgomeryField,
+        WIDTH,
+        INTERNAL_ROUNDS,
+        EXTERNAL_ROUNDS,
+        SBOX_DEGREE,
+        DIAGONAL,
+        EXTERNAL_RCS,
+        INTERNAL_RCS,
+    );
+    var rand = std.Random.DefaultPrng.init(42);
+    for (0..10_000) |_| {
+        var input_state: [WIDTH]u32 = undefined;
+        for (0..WIDTH) |index| {
+            input_state[index] = @truncate(rand.next());
+        }
+
+        try std.testing.expectEqual(testPermutation(Poseidon2BabyBearNaive, input_state), testPermutation(Poseidon2BabyBearOptimized, input_state));
+    }
+}
+
+fn testPermutation(comptime Poseidon2: type, state: [WIDTH]u32) [WIDTH]u32 {
+    const F = Poseidon2.Field;
+    var mont_state: [WIDTH]F.MontFieldElem = undefined;
+    inline for (0..WIDTH) |j| {
+        F.toMontgomery(&mont_state[j], state[j]);
+    }
+    Poseidon2.permutation(&mont_state);
+    var ret: [WIDTH]u32 = undefined;
+    inline for (0..WIDTH) |j| {
+        ret[j] = F.toNormal(mont_state[j]);
+    }
+    return ret;
 }

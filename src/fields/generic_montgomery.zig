@@ -10,35 +10,36 @@ pub fn MontgomeryField31(comptime modulus: u32) type {
     std.debug.assert(modulus * modulus_prime % R == R - 1);
 
     return struct {
-        pub const MontgomeryDomainFieldElement = struct {
+        pub const FieldElem = u32;
+        pub const MontFieldElem = struct {
             value: u32,
         };
 
-        pub fn toMontgomery(out: *MontgomeryDomainFieldElement, value: u32) void {
+        pub fn toMontgomery(out: *MontFieldElem, value: FieldElem) void {
             out.* = .{ .value = montReduce(@as(u64, value) * R_square_mod_modulus) };
         }
 
-        pub fn square(out1: *MontgomeryDomainFieldElement, arg1: MontgomeryDomainFieldElement) void {
-            mul(out1, arg1, arg1);
+        pub fn square(out1: *MontFieldElem, value: MontFieldElem) void {
+            mul(out1, value, value);
         }
 
-        pub fn mul(out1: *MontgomeryDomainFieldElement, arg1: MontgomeryDomainFieldElement, arg2: MontgomeryDomainFieldElement) void {
-            out1.* = .{ .value = montReduce(@as(u64, arg1.value) * @as(u64, arg2.value)) };
+        pub fn mul(out1: *MontFieldElem, value: MontFieldElem, arg2: MontFieldElem) void {
+            out1.* = .{ .value = montReduce(@as(u64, value.value) * @as(u64, arg2.value)) };
         }
 
-        pub fn add(out1: *MontgomeryDomainFieldElement, arg1: MontgomeryDomainFieldElement, arg2: MontgomeryDomainFieldElement) void {
-            var tmp = arg1.value + arg2.value;
+        pub fn add(out1: *MontFieldElem, value: MontFieldElem, arg2: MontFieldElem) void {
+            var tmp = value.value + arg2.value;
             if (tmp > modulus) {
                 tmp -= modulus;
             }
             out1.* = .{ .value = tmp };
         }
 
-        pub fn toNormal(self: MontgomeryDomainFieldElement) u32 {
+        pub fn toNormal(self: MontFieldElem) FieldElem {
             return montReduce(@as(u64, self.value));
         }
 
-        fn montReduce(mont_value: u64) u32 {
+        fn montReduce(mont_value: u64) FieldElem {
             const tmp = mont_value + (((mont_value & 0xFFFFFFFF) * modulus_prime) & 0xFFFFFFFF) * modulus;
             std.debug.assert(tmp % R == 0);
             const t = tmp >> 32;

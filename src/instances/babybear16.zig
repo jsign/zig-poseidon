@@ -204,3 +204,33 @@ fn parseHex(s: []const u8) u32 {
     @setEvalBranchQuota(100_000);
     return std.fmt.parseInt(u32, s, 16) catch @compileError("OOM");
 }
+
+// Tests vectors were generated from the Poseidon2 reference repository: github.com/HorizenLabs/poseidon2
+const testVector = struct {
+    input_state: [WIDTH]u32,
+    output_state: [WIDTH]u32,
+};
+test "reference repo" {
+    const tests_vectors = [_]testVector{
+        .{
+            .input_state = std.mem.zeroes([WIDTH]u32),
+            .output_state = .{ 1337856655, 1843094405, 328115114, 964209316, 1365212758, 1431554563, 210126733, 1214932203, 1929553766, 1647595522, 1496863878, 324695999, 1569728319, 1634598391, 597968641, 679989771 },
+        },
+        .{
+            .input_state = [_]Poseidon2BabyBear.FieldElem{42} ** 16,
+            .output_state = .{ 1000818763, 32822117, 1516162362, 1002505990, 932515653, 770559770, 350012663, 846936440, 1676802609, 1007988059, 883957027, 738985594, 6104526, 338187715, 611171673, 414573522 },
+        },
+    };
+    for (tests_vectors) |test_vector| {
+        var mont_state: [WIDTH]babybear.MontgomeryDomainFieldElement = undefined;
+        inline for (0..WIDTH) |i| {
+            babybear.toMontgomery(&mont_state[i], test_vector.input_state[i]);
+        }
+        var expected_mont_state: [WIDTH]babybear.MontgomeryDomainFieldElement = undefined;
+        inline for (0..WIDTH) |i| {
+            babybear.toMontgomery(&expected_mont_state[i], test_vector.output_state[i]);
+        }
+        Poseidon2BabyBear.permutation(&mont_state);
+        try std.testing.expectEqual(expected_mont_state, mont_state);
+    }
+}

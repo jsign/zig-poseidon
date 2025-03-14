@@ -10,14 +10,6 @@ pub fn build(b: *std.Build) void {
         },
     });
 
-    const exe = b.addExecutable(.{
-        .name = "zig-poseidon",
-        .root_source_file = .{ .cwd_relative = "src/main.zig" },
-        .target = target,
-        .optimize = optimize,
-    });
-    b.installArtifact(exe);
-
     const lib = b.addStaticLibrary(.{
         .name = "zig-poseidon",
         .root_source_file = .{ .cwd_relative = "src/main.zig" },

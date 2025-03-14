@@ -6,7 +6,7 @@ pub fn MontgomeryField31(comptime modulus: u32) type {
     const R_square_mod_modulus: u64 = @intCast((@as(u128, R) * @as(u128, R)) % modulus);
 
     // modulus_prime = -modulus^-1 mod R
-    const modulus_prime = R - euclidesAlgorithm(modulus, R) % R;
+    const modulus_prime = R - euclideanAlgorithm(modulus, R) % R;
     std.debug.assert(modulus * modulus_prime % R == R - 1);
 
     return struct {
@@ -50,7 +50,7 @@ pub fn MontgomeryField31(comptime modulus: u32) type {
     };
 }
 
-fn euclidesAlgorithm(a: u64, b: u64) u64 {
+fn euclideanAlgorithm(a: u64, b: u64) u64 {
     var t: i64 = 0;
     var new_t: i64 = 1;
     var r: i64 = @intCast(b);

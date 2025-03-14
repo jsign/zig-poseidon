@@ -1,42 +1,30 @@
 # poseidon
 
-A Zig implementation of the Poseidon hash function, using the [Neptune optimizations](https://github.com/lurk-lab/neptune/blob/ef14a61b1aa7f8e92e6ace2190723c155e613a4a/spec/poseidon_spec.pdf).
+A Zig implementation of the Poseidon2 cryptographic hash function.
 
-## Supported finite fields
+## Supported Configurations
 
-This implementation is currently targeting BN254 scalar field (i.e: BabyJubJub base field), to be compatible with:
-- [CircomLib](https://github.com/iden3/circomlib) repository.
-- [go-iden3-crypto](https://github.com/iden3/go-iden3-crypto/tree/master/poseidon) implementation.
-- [poseidon-rs](https://github.com/arnaucube/poseidon-rs) implementation.
+Currently, this implementation provides:
 
-See the [compatibility tests](https://github.com/jsign/poseidon/blob/main/src/bn254/tests.zig).
+- BabyBear finite field with a width of 16 elements
+- Generic Montgomery form implementation for finite fields of 31 bits or less
+- Compression mode, since it's the recommended mode for Merkle Trees compared to the sponge construction.
 
-The parameters for BN254 were [pulled from CircomLib](https://github.com/iden3/circomlibjs/blob/4f094c5be05c1f0210924a3ab204d8fd8da69f49/src/poseidon_constants.json) which can be generated with the [official Sage script](https://extgit.iaik.tugraz.at/krypto/hadeshash) and transformed using a [CircomLibJS tool](https://github.com/iden3/circomlibjs/blob/main/tools/poseidon_optimize_constants.js) created by @jbaylina.
+The generic implementation makes it straightforward to add support for additional 31-bit fields.
 
-Supporting other fields (e.g: BLS12-381 scalar field) would only involve generating the parameters.
+## Project Motivation
 
-## Benchmarks
+This repository was created primarily to support the upcoming Ethereum Beam chain. The implementation will be updated to match the required configuration once the specifications are finalized.
 
-This implementation doesn't use assembly (e.g: ADX) or SIMD instructions for finite field operations.
+With time this repository can keep expaning on features:
 
-Run on _AMD Ryzen 7 3800XT_:
-```
-$ zig build run -Doptimize=ReleaseFast 
-Poseidon(width=1) took 13µs
-Poseidon(width=2) took 20µs
-Poseidon(width=3) took 26µs
-Poseidon(width=4) took 35µs
-Poseidon(width=5) took 44µs
-Poseidon(width=6) took 55µs
-Poseidon(width=7) took 64µs
-Poseidon(width=8) took 73µs
-Poseidon(width=9) took 81µs
-Poseidon(width=10) took 97µs
-```
+- Add support for more finite fields.
+- Add support for the sponge construction.
+- Add benchmarks and optimizations.
 
-## Future work
+## Compatibility
 
-Due to some limitations of JSON at `comptime`, the parameter parsing is dynamic for now. Whenever this gets fixed, we can avoid this (init) runtime overhead and strip down the binary size.
+This implementation has been cross-validated against the [reference repository](https://github.com/HorizenLabs/poseidon2) cited in the Poseidon2 paper to ensure correctness.
 
 ## License
 
